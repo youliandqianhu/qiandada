@@ -1,5 +1,6 @@
 package com.yupi.qiandada.controller;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.qiandada.annotation.AuthCheck;
 import com.yupi.qiandada.common.BaseResponse;
@@ -9,21 +10,23 @@ import com.yupi.qiandada.common.ResultUtils;
 import com.yupi.qiandada.constant.UserConstant;
 import com.yupi.qiandada.exception.BusinessException;
 import com.yupi.qiandada.exception.ThrowUtils;
-import com.yupi.qiandada.model.dto.userAnswer.UserAnswerAddRequest;
-import com.yupi.qiandada.model.dto.userAnswer.UserAnswerEditRequest;
-import com.yupi.qiandada.model.dto.userAnswer.UserAnswerQueryRequest;
-import com.yupi.qiandada.model.dto.userAnswer.UserAnswerUpdateRequest;
+import com.yupi.qiandada.model.dto.useranswer.UserAnswerAddRequest;
+import com.yupi.qiandada.model.dto.useranswer.UserAnswerEditRequest;
+import com.yupi.qiandada.model.dto.useranswer.UserAnswerQueryRequest;
+import com.yupi.qiandada.model.dto.useranswer.UserAnswerUpdateRequest;
 import com.yupi.qiandada.model.entity.UserAnswer;
 import com.yupi.qiandada.model.entity.User;
 import com.yupi.qiandada.model.vo.UserAnswerVO;
 import com.yupi.qiandada.service.UserAnswerService;
 import com.yupi.qiandada.service.UserService;
+import io.github.classgraph.json.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 用户答案接口
@@ -54,12 +57,14 @@ public class UserAnswerController {
     @PostMapping("/add")
     public BaseResponse<Long> addUserAnswer(@RequestBody UserAnswerAddRequest userAnswerAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(userAnswerAddRequest == null, ErrorCode.PARAMS_ERROR);
-        // todo 在此处将实体类和 DTO 进行转换
+        // 在此处将实体类和 DTO 进行转换
         UserAnswer userAnswer = new UserAnswer();
         BeanUtils.copyProperties(userAnswerAddRequest, userAnswer);
+        List<String> choices = userAnswerAddRequest.getChoices();
+        userAnswer.setChoices(JSONUtil.toJsonStr(choices));
         // 数据校验
         userAnswerService.validUserAnswer(userAnswer, true);
-        // todo 填充默认值
+        // 填充默认值
         User loginUser = userService.getLoginUser(request);
         userAnswer.setUserId(loginUser.getId());
         // 写入数据库
@@ -109,9 +114,11 @@ public class UserAnswerController {
         if (userAnswerUpdateRequest == null || userAnswerUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // todo 在此处将实体类和 DTO 进行转换
+        // 在此处将实体类和 DTO 进行转换
         UserAnswer userAnswer = new UserAnswer();
         BeanUtils.copyProperties(userAnswerUpdateRequest, userAnswer);
+        List<String> choices = userAnswerUpdateRequest.getChoices();
+        userAnswer.setChoices(JSONUtil.toJsonStr(choices));
         // 数据校验
         userAnswerService.validUserAnswer(userAnswer, false);
         // 判断是否存在
@@ -215,9 +222,11 @@ public class UserAnswerController {
         if (userAnswerEditRequest == null || userAnswerEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // todo 在此处将实体类和 DTO 进行转换
+        // 在此处将实体类和 DTO 进行转换
         UserAnswer userAnswer = new UserAnswer();
         BeanUtils.copyProperties(userAnswerEditRequest, userAnswer);
+        List<String> choices = userAnswerEditRequest.getChoices();
+        userAnswer.setChoices(JSONUtil.toJsonStr(choices));
         // 数据校验
         userAnswerService.validUserAnswer(userAnswer, false);
         User loginUser = userService.getLoginUser(request);

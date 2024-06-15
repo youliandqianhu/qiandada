@@ -3,7 +3,7 @@ package com.yupi.qiandada.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.yupi.qiandada.model.dto.scoringResult.ScoringResultQueryRequest;
+import com.yupi.qiandada.model.dto.scoringresult.ScoringResultQueryRequest;
 import com.yupi.qiandada.model.entity.ScoringResult;
 import com.yupi.qiandada.model.vo.ScoringResultVO;
 

@@ -40,10 +40,5 @@ public class QuestionQueryRequest extends PageRequest implements Serializable {
      */
     private Long  notId;
 
-    /**
-     * 搜索词
-     */
-    private String searchText;
-
     private static final long serialVersionUID = 1L;
 }
