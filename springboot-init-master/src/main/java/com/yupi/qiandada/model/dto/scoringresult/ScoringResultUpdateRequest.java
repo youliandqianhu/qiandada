@@ -15,7 +15,7 @@ import java.util.List;
 public class ScoringResultUpdateRequest implements Serializable {
 
     /**
-     * id
+     * 应用 id
      */
     private Long id;
 

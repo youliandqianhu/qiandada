@@ -171,6 +171,8 @@ public class AppController {
         long size = appQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
+        // 用户只能看到已过审的题目
+        appQueryRequest.setReviewStatus(ReviewStatusEnum.PASS.getValue());
         // 查询数据库
         Page<App> appPage = appService.page(new Page<>(current, size),
                 appService.getQueryWrapper(appQueryRequest));
@@ -268,6 +270,7 @@ public class AppController {
         App app = new App();
         app.setId(id);
         app.setReviewStatus(reviewStatus);
+        app.setReviewMessage(reviewRequest.getReviewMessage());
         app.setReviewerId(loginUser.getId());
         app.setReviewTime(new Date());
         boolean result = appService.updateById(app);

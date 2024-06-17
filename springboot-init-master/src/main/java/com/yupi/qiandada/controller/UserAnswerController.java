@@ -14,9 +14,13 @@ import com.yupi.qiandada.model.dto.useranswer.UserAnswerAddRequest;
 import com.yupi.qiandada.model.dto.useranswer.UserAnswerEditRequest;
 import com.yupi.qiandada.model.dto.useranswer.UserAnswerQueryRequest;
 import com.yupi.qiandada.model.dto.useranswer.UserAnswerUpdateRequest;
+import com.yupi.qiandada.model.entity.App;
 import com.yupi.qiandada.model.entity.UserAnswer;
 import com.yupi.qiandada.model.entity.User;
+import com.yupi.qiandada.model.enums.ReviewStatusEnum;
 import com.yupi.qiandada.model.vo.UserAnswerVO;
+import com.yupi.qiandada.scoring.ScoringStrategyExecutor;
+import com.yupi.qiandada.service.AppService;
 import com.yupi.qiandada.service.UserAnswerService;
 import com.yupi.qiandada.service.UserService;
 import io.github.classgraph.json.JSONUtils;
@@ -45,6 +49,12 @@ public class UserAnswerController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private ScoringStrategyExecutor scoringStrategyExecutor;
+
+    @Resource
+    private AppService appService;
+
     // region 增删改查
 
     /**
@@ -62,6 +72,14 @@ public class UserAnswerController {
         BeanUtils.copyProperties(userAnswerAddRequest, userAnswer);
         List<String> choices = userAnswerAddRequest.getChoices();
         userAnswer.setChoices(JSONUtil.toJsonStr(choices));
+        // 拿到app
+        App app = appService.getById(userAnswerAddRequest.getAppId());
+        // 判断app是否为空
+        ThrowUtils.throwIf(app == null,ErrorCode.NOT_FOUND_ERROR);
+        // 判断app是否通过审核()
+        if (!ReviewStatusEnum.PASS.equals(ReviewStatusEnum.getEnumByValue(app.getReviewStatus()))){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"应用未通过审核,无法答题");
+        }
         // 数据校验
         userAnswerService.validUserAnswer(userAnswer, true);
         // 填充默认值
@@ -72,6 +90,15 @@ public class UserAnswerController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         // 返回新写入的数据 id
         long newUserAnswerId = userAnswer.getId();
+        // 执行打分
+        try {
+            UserAnswer userAnswerWithResult = scoringStrategyExecutor.doScore(choices, app);
+            // 将用户的答案进行更新，根据newUserAnswerId
+            userAnswerWithResult.setId(newUserAnswerId);
+            userAnswerService.updateById(userAnswerWithResult);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"评分错误");
+        }
         return ResultUtils.success(newUserAnswerId);
     }
 

@@ -17,9 +17,9 @@ import java.util.List;
 @Data
 public class ScoringResultAddRequest implements Serializable {
     /**
-     * id
+     * 应用 id
      */
-    private Long id;
+    private Long appId;
 
     /**
      * 结果名称，如物流师

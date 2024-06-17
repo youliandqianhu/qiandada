@@ -17,6 +17,7 @@ import com.yupi.qiandada.model.entity.UserAnswer;
 import com.yupi.qiandada.model.entity.User;
 import com.yupi.qiandada.model.vo.UserAnswerVO;
 import com.yupi.qiandada.model.vo.UserVO;
+import com.yupi.qiandada.scoring.ScoringStrategyExecutor;
 import com.yupi.qiandada.service.AppService;
 import com.yupi.qiandada.service.UserAnswerService;
 import com.yupi.qiandada.service.UserService;
