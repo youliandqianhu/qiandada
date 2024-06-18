@@ -9,7 +9,7 @@
       </a-layout-content>
       <a-layout-footer class="footer">
         <a
-          href="http://baidu.com"
+          href="https://baidu.com"
           target="_blank"
           style="text-decoration: none"
         >
@@ -34,14 +34,14 @@ import GlobalHeader from "@/components/GlobalHeader.vue";
 }
 
 #BasicLayout .content {
-  background: linear-gradient(to right, #fefefe, #fff);
   margin-bottom: 28px;
   padding: 20px;
+  background: linear-gradient(to right, #fefefe, #fff);
 }
 
 .footer {
-  background-color: #f0f2f5;
   padding: 10px;
   text-align: center;
+  background-color: #f0f2f5;
 }
 </style>

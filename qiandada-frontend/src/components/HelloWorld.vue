@@ -120,8 +120,8 @@ h3 {
 }
 
 ul {
-  list-style-type: none;
   padding: 0;
+  list-style-type: none;
 }
 
 li {

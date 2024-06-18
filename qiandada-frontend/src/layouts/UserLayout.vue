@@ -2,8 +2,10 @@
   <div id="userLayout">
     <a-layout style="height: 100vh">
       <a-layout-header class="header">
-        <img class="logo" src="../assets/logo.jpg" />
-        <div>千答答AI答题平台</div>
+        <a-space>
+          <img class="logo" src="../assets/logo.jpg" />
+          <div>千答答AI答题平台</div>
+        </a-space>
       </a-layout-header>
       <a-layout-content class="content">
         <router-view />
@@ -21,23 +23,22 @@
   </div>
 </template>
 
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <style scoped>
 #userLayout {
   text-align: center;
-  background: url("https://gw.alipayobjects.com/zos/rmsportal/FfdJeJRQWjEeGTpqgBKj.png");
+  background: url("https://gw.alipayobjects.com/zos/rmsportal/FfdJeJRQWjEeGTpqgBKj.png")
+    0% 0% / 100% 100%;
 }
 
 #userLayout .logo {
-  height: 48px;
   width: 48px;
+  height: 48px;
 }
 
 #userLayout .header {
-  margin-bottom: 16px;
+  margin-top: 16px;
   font-size: 21px;
 }
 
@@ -47,8 +48,8 @@
 }
 
 .footer {
-  background-color: #f0f2f5;
   padding: 10px;
   text-align: center;
+  background-color: #f0f2f5;
 }
 </style>

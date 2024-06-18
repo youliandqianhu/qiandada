@@ -24,7 +24,10 @@
       </div>
     </a-col>
     <a-col flex="100px">
-      <div>
+      <div v-if="loginUserStore.loginUser.id">
+        {{ loginUserStore.loginUser.userName ?? "无名" }}
+      </div>
+      <div v-else>
         <a-button type="primary" href="/user/login">登录</a-button>
       </div>
     </a-col>
@@ -34,7 +37,13 @@
 <script setup lang="ts">
 import { routes } from "@/router/routers";
 import { useRouter } from "vue-router";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useLoginUserStore } from "@/store/userStore";
+import component from "*.vue";
+import checkAccess from "@/access/checkAccess";
+
+// 全局用户信息
+const loginUserStore = useLoginUserStore();
 
 // 路由跳转工具
 const router = useRouter();
@@ -52,11 +61,18 @@ router.afterEach((to, from, failure) => {
 });
 
 // 用于展示在菜单栏的路由(因为有些路由需要隐藏起来)
-const visibleRoutes = routes.filter((item) => {
-  if (item.meta?.hideInMenu) {
-    return false;
-  }
-  return true;
+const visibleRoutes = computed(() => {
+  return routes.filter((item) => {
+    // 判断该路由是否为已隐藏
+    if (item.meta?.hideInMenu) {
+      return false;
+    }
+    // 判断用户是否拥有该路由的权限
+    if (!checkAccess(loginUserStore.loginUser, item.meta?.access as string)) {
+      return false;
+    }
+    return true;
+  });
 });
 </script>
 <style scoped>
