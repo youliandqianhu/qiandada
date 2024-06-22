@@ -34,13 +34,14 @@ import GlobalHeader from "@/components/GlobalHeader.vue";
 }
 
 #BasicLayout .content {
-  margin-bottom: 28px;
+  box-sizing: border-box;
+  //width: 100%; //max-width: 1200px; margin: 0 auto 28px;
   padding: 20px;
   background: linear-gradient(to right, #fefefe, #fff);
 }
 
 .footer {
-  padding: 10px;
+  padding: 16px;
   text-align: center;
   background-color: #f0f2f5;
 }
