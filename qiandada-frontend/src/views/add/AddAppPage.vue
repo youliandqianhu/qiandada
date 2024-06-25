@@ -63,6 +63,7 @@ import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
 import {
   addAppUsingPost,
+  editAppUsingPost,
   getAppVoByIdUsingGet,
   updateAppUsingPost,
 } from "@/api/appController";
@@ -124,7 +125,7 @@ const handleSubmit = async () => {
   // 判断是修改还是创建
   if (props.id) {
     // 调用修改接口
-    res = await updateAppUsingPost({
+    res = await editAppUsingPost({
       id: props.id as any,
       ...form.value,
     });
@@ -143,7 +144,6 @@ const handleSubmit = async () => {
       } else {
         appId = res.data.data;
       }
-      console.log(appId);
       router.push(`/app/detail/${appId}`);
     }, 3000);
   } else {
