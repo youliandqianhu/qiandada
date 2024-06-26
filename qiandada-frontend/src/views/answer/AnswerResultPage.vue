@@ -1,14 +1,19 @@
 <template>
-  <div id="appDetailPage">
+  <div id="answerResultDetailPage">
     <a-card>
       <a-row style="margin-bottom: 16px">
         <a-col flex="auto" class="content-wrapper">
-          <h2>{{ data.appName }}</h2>
-          <p>{{ data.appDesc }}</p>
-          <p>应用类型:{{ APP_TYPE_MAP[data.appType] }}</p>
-          <p>评分策略:{{ APP_SCORING_STRATEGY_MAP[data.scoringStrategy] }}</p>
+          <h2>{{ data.resultName }}</h2>
+          <p>结果描述:{{ data.resultDesc }}</p>
+          <p>结果 id:{{ data.resultId }}</p>
+          <p>结果得分: {{ data.resultScore }}</p>
+          <p>我的答案: {{ data.choices }}</p>
+          <p>应用 id:{{ data.appId }}</p>
+          <p>应用类型: {{ APP_TYPE_MAP[data.appType] }}</p>
+          <p>评分策略: {{ APP_SCORING_STRATEGY_MAP[data.scoringStrategy] }}</p>
           <p>
             <a-space>
+              答题人:
               <div :style="{ display: 'flex', alignItems: 'center' }">
                 <a-avatar
                   :size="24"
@@ -22,26 +27,16 @@
             </a-space>
           </p>
           <p>
-            创建时间: {{ dayjs(data.createTime).format("YYYY-MM-DD HH:mm:ss") }}
+            答题时间: {{ dayjs(data.createTime).format("YYYY-MM-DD HH:mm:ss") }}
           </p>
           <a-space>
-            <a-button type="primary" :href="`/answer/do/${data.id}`"
-              >开始答题</a-button
+            <a-button type="primary" :href="`/answer/do/${data.appId}`"
+              >去答题</a-button
             >
-            <a-button>分享应用</a-button>
-            <a-button v-if="isMy" :href="`/add/app/${data.id}`"
-              >修改应用
-            </a-button>
-            <a-button v-if="isMy" :href="`/add/question/${data.id}`"
-              >创建题目
-            </a-button>
-            <a-button v-if="isMy" :href="`/add/scoring_result/${data.id}`"
-              >创建评分
-            </a-button>
           </a-space>
         </a-col>
         <a-col flex="400px">
-          <a-image width="100%" :src="data.appIcon" />
+          <a-image width="100%" :src="data.userAnswerIcon" />
         </a-col>
       </a-row>
     </a-card>
@@ -52,7 +47,7 @@
 import { ref, withDefaults, defineProps, watchEffect, computed } from "vue";
 import API from "@/api";
 import message from "@arco-design/web-vue/es/message";
-import { getAppVoByIdUsingGet } from "@/api/appController";
+import { getUserAnswerVoByIdUsingGet } from "@/api/userAnswerController";
 import { useRouter } from "vue-router";
 import { dayjs } from "@arco-design/web-vue/es/_utils/date";
 import { useLoginUserStore } from "@/store/userStore";
@@ -73,15 +68,7 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter();
 
 // 存储查询到的数据
-const data = ref<API.AppVO>({});
-
-/**
- * 根据用户权限判断用户是否拥有设置题目、评分和修改应用的权限
- */
-const loginUserId = useLoginUserStore().loginUser.id;
-const isMy = computed(() => {
-  return loginUserId && data.value.userId === loginUserId;
-});
+const data = ref<API.UserAnswerVO>({});
 
 /**
  * 加载数据
@@ -91,7 +78,7 @@ const loadData = async () => {
     return;
   }
   // 发送请求获取数据
-  const res = await getAppVoByIdUsingGet({
+  const res = await getUserAnswerVoByIdUsingGet({
     id: props.id as any,
   });
   // 判断数据是否正常
@@ -112,10 +99,10 @@ watchEffect(() => {
 });
 </script>
 <style scoped>
-#appDetailPage {
+#userAnswerDetailPage {
 }
 
-#appDetailPage .content-wrapper > * {
+#userAnswerDetailPage .content-wrapper > * {
   margin-bottom: 16px;
 }
 </style>
