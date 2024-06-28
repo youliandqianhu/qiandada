@@ -26,7 +26,8 @@
             v-if="current === questionContent.length"
             :disabled="!currentQuestionAnswer"
             @click="doSubmit"
-            >查看结果
+            :loading="submitting"
+            >{{ submitting ? "分析中..." : "一键生成" }}
           </a-button>
           <a-button
             type="primary"
@@ -49,6 +50,7 @@ import {
   ref,
   reactive,
   computed,
+  toRef,
 } from "vue";
 import API from "@/api";
 import message from "@arco-design/web-vue/es/message";
@@ -79,6 +81,8 @@ const props = withDefaults(defineProps<Props>(), {
     return "";
   },
 });
+// 加载显示
+const submitting = ref(false);
 // 路由跳转
 const router = useRouter();
 // app应用
@@ -170,6 +174,8 @@ const doSubmit = async () => {
   if (!props.appId || !answerList) {
     return;
   }
+  // 显示加载中
+  submitting.value = true;
   const res = await addUserAnswerUsingPost({
     appId: props.appId as any,
     choices: answerList,
@@ -180,6 +186,8 @@ const doSubmit = async () => {
   } else {
     message.error("提交答案失败," + res.data.message);
   }
+  // 取消加载中
+  submitting.value = false;
 };
 </script>
 <style scoped>

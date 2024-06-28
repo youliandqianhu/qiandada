@@ -101,3 +101,6 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.yupi.qiandada.controller
+# ai配置
+ai:
+  apiKey: a9b2129bc5b4c1c9846537397e3db123.Ebtb04gPPWq0HUBi

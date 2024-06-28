@@ -138,13 +138,7 @@ const handleSubmit = async () => {
     message.success("操作成功, 即将跳转到应用详情页");
     setTimeout(() => {
       // 判断是修改还是新增
-      let appId;
-      if (props.id) {
-        appId = props.id;
-      } else {
-        appId = res.data.data;
-      }
-      router.push(`/app/detail/${appId}`);
+      router.push(`/app/detail/${props.id ?? res.data.data}`);
     }, 3000);
   } else {
     message.error("操作失败," + res.data.message);

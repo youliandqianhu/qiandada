@@ -10,9 +10,16 @@
     >
       <a-form-item label="应用 id">{{ appId }}</a-form-item>
       <a-form-item label="题目列表" :content-flex="false" :merge-props="false">
-        <a-button @click="addQuestion(questionContent.length)">
-          底部添加题目
-        </a-button>
+        <a-space>
+          <a-button @click="addQuestion(questionContent.length)">
+            底部添加题目
+          </a-button>
+          <AiGenerateQuestionDrawer
+            :appId="appId"
+            :onSuccess="onAiGenerateSuccess"
+          />
+        </a-space>
+
         <div v-for="(question, index) in questionContent" :key="index">
           <a-space size="large">
             <h3>题目{{ index + 1 }}</h3>
@@ -102,6 +109,7 @@ import {
   getQuestionVoByIdUsingGet,
   listQuestionVoByPageUsingPost,
 } from "@/api/questionController";
+import AiGenerateQuestionDrawer from "@/views/add/components/AiGenerateQuestionDrawer.vue";
 
 // 获取路由传递的参数id
 interface Props {
@@ -228,5 +236,14 @@ const handleSubmit = async () => {
   } else {
     message.error("操作失败," + res.data.message);
   }
+};
+
+/**
+ * AI自动生成调用代码
+ * @param result
+ */
+const onAiGenerateSuccess = (result: API.QuestionContentDTO[]) => {
+  message.success(`AI自动生成题目成功,生成${result.length} 道题目`);
+  questionContent.value = [...questionContent.value, ...result];
 };
 </script>
