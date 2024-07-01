@@ -17,6 +17,9 @@
           <AiGenerateQuestionDrawer
             :appId="appId"
             :onSuccess="onAiGenerateSuccess"
+            :onSSESuccess="onAiGenerateSuccessSSE"
+            :onSSEStart="onSSEStart"
+            :onSSEClose="onSSEClose"
           />
         </a-space>
 
@@ -96,17 +99,10 @@ import { withDefaults, defineProps, watchEffect, ref, reactive } from "vue";
 import API from "@/api";
 import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
-import {
-  addAppUsingPost,
-  getAppVoByIdUsingGet,
-  updateAppUsingPost,
-} from "@/api/appController";
-import { APP_SCORING_STRATEGY_MAP, APP_TYPE_MAP } from "@/constant/app";
-import { off } from "@arco-design/web-vue/es/_utils/dom";
+
 import {
   addQuestionUsingPost,
   editQuestionUsingPost,
-  getQuestionVoByIdUsingGet,
   listQuestionVoByPageUsingPost,
 } from "@/api/questionController";
 import AiGenerateQuestionDrawer from "@/views/add/components/AiGenerateQuestionDrawer.vue";
@@ -239,11 +235,32 @@ const handleSubmit = async () => {
 };
 
 /**
- * AI自动生成调用代码
+ * AI 自动生成题目成功后执行
  * @param result
  */
 const onAiGenerateSuccess = (result: API.QuestionContentDTO[]) => {
   message.success(`AI自动生成题目成功,生成${result.length} 道题目`);
   questionContent.value = [...questionContent.value, ...result];
+};
+
+/**
+ * AI 自动生成题目成功后执行(SSE)
+ */
+const onAiGenerateSuccessSSE = (result: API.QuestionContentDTO) => {
+  questionContent.value = [...questionContent.value, result];
+};
+
+/**
+ * SSE 开始生成
+ */
+const onSSEStart = (event: any) => {
+  message.success("开始生成");
+};
+
+/**
+ * SSE 关闭连接
+ */
+const onSSEClose = (event: any) => {
+  message.success("关闭连接");
 };
 </script>

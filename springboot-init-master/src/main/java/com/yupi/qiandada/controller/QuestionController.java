@@ -21,14 +21,21 @@ import com.yupi.qiandada.model.vo.QuestionVO;
 import com.yupi.qiandada.service.AppService;
 import com.yupi.qiandada.service.QuestionService;
 import com.yupi.qiandada.service.UserService;
+import com.zhipu.oapi.service.v4.model.ModelData;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.json.Json;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 题目接口
@@ -310,5 +317,79 @@ public class QuestionController {
         String json = result.substring(start, end+1);
         List<QuestionContentDTO> questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
         return ResultUtils.success(questionContentDTOList);
+    }
+
+    /**
+     * 流式响应数据
+     * @param aiGenerateQuestionRequest
+     * @return
+     */
+    @GetMapping("/ai_generate/sse")
+    public SseEmitter aiGenerateQuestionSSE(AiGenerateQuestionRequest aiGenerateQuestionRequest){
+        ThrowUtils.throwIf(aiGenerateQuestionRequest == null,ErrorCode.PARAMS_ERROR);
+        // 获取参数
+        Long appId = aiGenerateQuestionRequest.getAppId();
+        int questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
+        int optionNumber = aiGenerateQuestionRequest.getOptionNumber();
+        // 获取应用信息
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null,ErrorCode.NOT_FOUND_ERROR);
+        // 封装成prompt
+        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+        // 创建SSE 连接对象, 0 表示永不超时
+        SseEmitter sseEmitter = new SseEmitter(0L);
+        // 调用智谱Ai,使用流式返回
+        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
+        // 左括号计数器,除了默认值外,当回归为0时,表示左括号等于右括号,可以截取
+        AtomicInteger counter = new AtomicInteger(0);
+        // 拼接完整题目
+        StringBuilder stringBuilder = new StringBuilder();
+        modelDataFlowable
+                // 设置使用的线程池
+                .observeOn(Schedulers.io())
+                // 对数据进行预处理,最后再交给doOnNext进行处理
+                // 先获取值
+                .map(modelData -> modelData.getChoices().get(0).getDelta().getContent())
+                // 将空字符("   ")转换成空字符串("")
+                .map(message -> message.replaceAll("\\s",""))
+                // 去除空字符串，使数据变成只剩下有正常字符串的字符串
+                .filter(StringUtils::isNotBlank)
+                // 将字符串(string)变成一个个字符(char),由于数据可能是一串字符("dfgdf"),所以我们使用flatMap将一串字符("dfgdf")进行分流操作.将dfgdf挨个拿出
+                // 使得字符串被分成多个流，每个流都只有一个字符
+                .flatMap(message -> {
+                    // 定义一个字符类型的集合(因为Flowable.fromIterable函数需要枚举,而char[]不是枚举。所以我们使用集合)
+                    List<Character> characterList = new ArrayList<>();
+                    for (char c: message.toCharArray()){
+                        characterList.add(c);
+                    }
+                    return Flowable.fromIterable(characterList);
+                })
+                // 每次有值时会触发的函数，经过上面的预处理，我们这里拿到的就是一个个字符了
+                .doOnNext(c -> {
+                    // 使用括号匹配算法.因为数据返回的格式是{...{...}...}这样的
+                    // 如果 '{',计数器 + 1
+                    if (c == '{'){
+                        counter.addAndGet(1);
+                    }
+                    if (counter.get() > 0){
+                        stringBuilder.append(c);
+                    }
+                    if (c == '}'){
+                        counter.addAndGet(-1);
+                        if (counter.get() == 0){
+                            // 可以拼接题目,返回给前端
+                            sseEmitter.send(JSONUtil.toJsonStr(stringBuilder.toString()));
+                            // 重置,准备拼接下一道题
+                            stringBuilder.setLength(0);
+                        }
+                    }
+                })
+                // 有报错时会触发的函数
+                .doOnError((e) -> log.error("sse error",e))
+                // 结束时会触发的函数
+                .doOnComplete(sseEmitter::complete)
+                // 订阅(监听)
+                .subscribe();
+        return sseEmitter;
     }
 }
